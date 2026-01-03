@@ -376,6 +376,16 @@ button {
     animation: shake 0.5s;
 }
 
+.note-position.region-highlight {
+    background: rgba(102, 126, 234, 0.25);
+    border-color: rgba(102, 126, 234, 0.4);
+}
+
+.note-position.region-highlight:hover {
+    background: rgba(102, 126, 234, 0.4);
+    border-color: rgba(102, 126, 234, 0.6);
+}
+
 @keyframes pulse {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.2); }

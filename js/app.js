@@ -191,9 +191,9 @@ function endExercise() {
     document.getElementById('startBtn').disabled = false;
     document.getElementById('prompt').textContent = 'Exercise Complete!';
     
-    // Clear all highlights
+    // Clear all highlights including region highlighting
     document.querySelectorAll('.note-position').forEach(pos => {
-        pos.classList.remove('correct', 'incorrect');
+        pos.classList.remove('correct', 'incorrect', 'region-highlight');
     });
     
     // Show game over screen
@@ -250,9 +250,9 @@ function resetExercise() {
     updateScore();
     updateTimer();
     
-    // Clear all highlights
+    // Clear all highlights including region highlighting
     document.querySelectorAll('.note-position').forEach(pos => {
-        pos.classList.remove('correct', 'incorrect', 'active', 'selected');
+        pos.classList.remove('correct', 'incorrect', 'active', 'selected', 'region-highlight');
     });
     
     // Hide note buttons if in name_note mode
@@ -510,12 +510,32 @@ function createQuizCallbacks() {
     };
 }
 
+// Update region highlighting based on fret range
+function updateRegionHighlighting() {
+    // Apply region highlighting only in find_all_instances mode when playing
+    const shouldHighlight = gameState.isPlaying && gameState.drillMode === 'find_all_instances';
+    
+    document.querySelectorAll('.note-position').forEach(pos => {
+        const fret = parseInt(pos.dataset.fret);
+        const inRange = fret >= gameState.fretStart && fret <= gameState.fretEnd;
+        
+        if (shouldHighlight && inRange) {
+            pos.classList.add('region-highlight');
+        } else {
+            pos.classList.remove('region-highlight');
+        }
+    });
+}
+
 // Update UI based on current quiz type
 function updateQuizUI() {
     // Clear all highlights
     document.querySelectorAll('.note-position').forEach(pos => {
         pos.classList.remove('active', 'selected');
     });
+    
+    // Update region highlighting
+    updateRegionHighlighting();
     
     // Update based on drill mode
     if (gameState.drillMode === 'name_note' && gameState.currentPosition) {
