@@ -1,0 +1,240 @@
+Fretboard Drill Trainer — Design Document (Python + PySide6)
+
+1) Goal
+
+A local macOS desktop app that drills fretboard knowledge via fast, repeatable micro-questions. MVP is “identify the position of a prompted note” (and the inverse: “name the note at a shown position”), with a clean path to add more drill types and spaced repetition.
+
+Non-goals (for now): DAW integration, MIDI input, cloud sync, social features.
+
+⸻
+
+2) User Experience
+
+MVP Flow
+	•	App opens to a single screen: fretboard + prompt bar + small stats area.
+	•	Prompt example: “Find: C#”
+	•	User clicks a fret position.
+	•	Feedback is immediate (correct / incorrect), optionally showing correct answers.
+	•	Auto-advance after a short delay or on Enter.
+
+Controls (MVP)
+	•	Instrument preset: 6-string standard, 7-string standard, basic drop tunings.
+	•	Fret range selector (e.g., 0–12, 0–15, 0–22/24).
+	•	Note naming mode: sharps, flats, or contextual.
+	•	Drill mode selector: Find Note, Name Note.
+	•	Optional constraints: string subset, fret window.
+
+⸻
+
+3) Core Concepts & Data Model
+
+Musical Representation
+	•	Internal canonical representation: pitch class (0–11).
+	•	Mapping to display names depends on user preference (sharps / flats).
+
+Example:
+	•	C = 0, C#/Db = 1, … B = 11
+
+Tuning Representation
+	•	A tuning is a list of open-string pitch classes, low-to-high.
+
+Examples:
+	•	6-string standard (E A D G B E): [4, 9, 2, 7, 11, 4]
+	•	7-string standard (B E A D G B E): [11, 4, 9, 2, 7, 11, 4]
+
+Fretboard Mapping
+
+For string s and fret f:
+
+pc = (tuning[s] + f) % 12
+
+This mapping is the authoritative engine logic and should be isolated and unit-tested.
+
+⸻
+
+4) Architecture Overview
+
+Separation of concerns: UI is dumb, engine is pure.
+
+Modules
+
+fretboard_trainer/
+├── app.py
+├── engine/
+│   ├── theory.py
+│   ├── fretboard.py
+│   ├── drills.py
+│   ├── scheduler.py      # later (spaced repetition)
+│   ├── models.py
+│   └── storage.py        # later (SQLite)
+├── ui/
+│   ├── main_window.py
+│   ├── fretboard_widget.py
+│   ├── controls_widget.py
+│   └── prompt_widget.py
+└── resources/
+    └── settings.json
+
+This structure allows drill logic, scheduling, and persistence to evolve independently of the UI.
+
+⸻
+
+5) Data Structures
+
+Settings
+
+@dataclass
+class Settings:
+    tuning: list[int]          # open string pitch classes, low->high
+    num_frets: int             # e.g. 12, 15, 22, 24
+    fret_start: int            # typically 0
+    note_display: str          # "sharps" | "flats" | "auto"
+    drill_mode: str            # "find_note" | "name_note"
+    allowed_strings: list[int] # subset of string indices
+    allow_open_strings: bool
+
+Position
+
+@dataclass(frozen=True)
+class Position:
+    string_index: int  # 0 = lowest string
+    fret: int
+
+Question
+
+@dataclass
+class Question:
+    id: str
+    mode: str                  # find_note | name_note
+    target_pc: int | None      # for find_note
+    shown_position: Position | None  # for name_note
+    constraints: dict
+
+Attempt
+
+@dataclass
+class Attempt:
+    question_id: str
+    timestamp: float
+    selected_position: Position | None
+    correct: bool
+    response_ms: int
+
+
+⸻
+
+6) Drill Logic
+
+Mode A — Find Note (Primary MVP)
+	•	Generate a target pitch class.
+	•	Correct if clicked position’s pitch class matches target.
+	•	Variants (future):
+	•	Any occurrence
+	•	Window-limited
+	•	Specific target position
+
+Mode B — Name Note
+	•	Randomly choose a position within constraints.
+	•	Display a marker on the fretboard.
+	•	User answers via note buttons (12 pitch classes).
+	•	Correct if selected note matches position pitch class.
+
+Question Selection (MVP)
+	•	Uniform random selection.
+	•	Avoid immediate repeats of last N questions.
+
+Future: Spaced Repetition
+	•	Track accuracy, latency, and recency.
+	•	Bias toward weak or stale items.
+
+⸻
+
+7) UI Design
+
+Layout
+	•	Top bar: drill mode, tuning, fret range, note naming, reset stats.
+	•	Center: fretboard widget (clickable).
+	•	Bottom: prompt text, feedback, stats (streak, accuracy, response time).
+
+Fretboard Widget
+	•	Custom QWidget with QPainter.
+	•	Horizontal strings, vertical frets.
+	•	Fret markers at 3, 5, 7, 9, 12, etc.
+	•	Click hitboxes per string/fret cell.
+
+Interaction Flow
+	1.	User clicks fret position.
+	2.	UI converts (x, y) → (string_index, fret).
+	3.	Engine validates answer.
+	4.	Feedback displayed.
+	5.	Next question scheduled.
+
+⸻
+
+8) Persistence
+
+MVP
+	•	Settings stored in local JSON file.
+	•	Attempts kept in memory for session stats.
+
+Phase 2
+	•	SQLite database for attempts and analytics.
+	•	Enables spaced repetition and long-term progress tracking.
+
+⸻
+
+9) Packaging & Distribution
+
+Development
+	•	Python 3.12+
+	•	Dependency management via uv or poetry.
+
+Build
+	•	pyinstaller --windowed --name FretDrill app.py
+	•	Produces a macOS .app bundle.
+
+⸻
+
+10) Testing Strategy
+
+Unit Tests (Engine)
+	•	Pitch class mapping correctness.
+	•	Tuning + fret calculations.
+	•	Drill validation logic.
+	•	Constraint enforcement.
+
+UI Tests
+	•	Manual smoke tests.
+	•	Focus on correct click mapping and resizing behavior.
+
+⸻
+
+11) Milestones
+
+M1 — Engine + bare UI
+	•	Draw fretboard
+	•	Click → string/fret mapping
+
+M2 — Find Note drill
+	•	Prompt note
+	•	Validate click
+	•	Feedback + stats
+
+M3 — Name Note drill
+	•	Highlight position
+	•	Note selection UI
+
+M4 — Constraints + persistence
+	•	String/fret filters
+	•	Save/load settings
+
+M5 — SQLite + spaced repetition
+	•	Persist attempts
+	•	Bias question selection
+
+⸻
+
+12) Open Decisions
+	1.	Instruments supported at launch (6-string, 7-string, both).
+	2.	Note naming: strict sharps/flats vs enharmonic display.
+	3.	Answer input: click-only vs keyboard support.
