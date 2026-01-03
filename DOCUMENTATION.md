@@ -85,10 +85,12 @@ fretting/
 - `NOTES`: Array of 12 chromatic notes
 - `NUM_FRETS`: Set to 24 frets
 - `EXERCISE_TIME`: 60 seconds per exercise
-- `ROUND_DELAY_MS`: 1000ms delay before new round after correct answer
-- `FEEDBACK_DELAY_MS`: 500ms delay before clearing incorrect highlight
-- `FEEDBACK_DURATION_MS`: 1000ms duration for feedback messages
 - `FRET_MARKERS`: Object mapping fret positions to marker types (dot/double-dot)
+
+### Timing Values (hardcoded)
+- New round delay: 1000ms (delay before starting new round after correct answer)
+- Feedback delay: 500ms (delay before clearing incorrect highlight)
+- Feedback duration: 1000ms (duration to show feedback messages)
 
 ### Core Functions
 
