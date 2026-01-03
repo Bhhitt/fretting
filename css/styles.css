@@ -229,6 +229,22 @@ button {
     background: #c0392b;
 }
 
+.submit-btn {
+    background: #3498db;
+    color: white;
+}
+
+.submit-btn:hover {
+    background: #2980b9;
+    transform: translateY(-2px);
+}
+
+.submit-btn:disabled {
+    background: #95a5a6;
+    cursor: not-allowed;
+    transform: none;
+}
+
 /* Fretboard */
 .fretboard-container {
     overflow-x: auto;
@@ -340,6 +356,12 @@ button {
 .note-position.active {
     background: #3498db;
     border-color: #2980b9;
+}
+
+.note-position.selected {
+    background: #f39c12;
+    border-color: #e67e22;
+    transform: scale(1.1);
 }
 
 .note-position.correct {

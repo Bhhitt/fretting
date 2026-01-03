@@ -24,7 +24,10 @@ fretting/
 
 ## Features
 - Interactive guitar fretboard with 24 frets and 6 strings
-- Multiple drill modes (Find Note, Name Note)
+- **Three drill modes**:
+  - **Find Note**: Click a single position for the prompted note
+  - **Name Note**: Identify a highlighted position by selecting the note name
+  - **Find All Instances**: Select ALL positions of a specific note (with optional fret range restriction)
 - Timed exercises (60 seconds)
 - Multiple tuning presets (Standard 6-string, Drop D, 7-string)
 - Note naming options (Sharps/Flats)
@@ -53,13 +56,13 @@ The application uses vanilla JavaScript with no build process required. All file
 
 ### Testing
 A comprehensive test suite is included in the `tests/` directory:
-- **36 unit tests** covering note calculations, tuning systems, and game logic
+- **56 unit tests** covering note calculations, tuning systems, game logic, and quiz types
 - Browser-based test runner with visual feedback
-- Run tests by opening `tests/index.html` in a browser
+- Run tests by opening `tests/all-tests.html` in a browser
 
 To run tests:
 1. Start a local server: `python3 -m http.server 8000`
-2. Navigate to `http://localhost:8000/tests/`
-3. Click "Run Tests"
+2. Navigate to `http://localhost:8000/tests/all-tests.html`
+3. Click "Run All Tests"
 
 See `tests/README.md` for detailed testing documentation.

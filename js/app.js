@@ -52,11 +52,14 @@ let gameState = {
     currentPositions: [],
     currentPosition: null, // For name_note mode
     timerInterval: null,
-    drillMode: 'find_note', // find_note | name_note
+    drillMode: 'find_note', // find_note | name_note | find_all_instances
     fretStart: 0,
     fretEnd: 24,
     noteNaming: 'sharps' // sharps | flats
 };
+
+// Current quiz instance
+let currentQuiz = null;
 
 /**
  * Calculate the note at a specific fret on a guitar string
@@ -165,6 +168,8 @@ function startExercise() {
     updateScore();
     updateTimer();
     
+    // Initialize quiz
+    initializeQuiz();
     startNewRound();
     
     // Start timer
@@ -234,15 +239,20 @@ function resetExercise() {
     gameState.attempts = 0;
     gameState.currentNote = null;
     
+    if (currentQuiz && currentQuiz.reset) {
+        currentQuiz.reset();
+    }
+    
     document.getElementById('startBtn').disabled = false;
     document.getElementById('prompt').textContent = 'Click "Start Exercise" to begin!';
+    document.getElementById('submitBtn').style.display = 'none';
     
     updateScore();
     updateTimer();
     
     // Clear all highlights
     document.querySelectorAll('.note-position').forEach(pos => {
-        pos.classList.remove('correct', 'incorrect');
+        pos.classList.remove('correct', 'incorrect', 'active', 'selected');
     });
     
     // Hide note buttons if in name_note mode
@@ -410,37 +420,18 @@ function startNewRoundNameNote() {
 function startNewRound() {
     // Clear previous highlights
     document.querySelectorAll('.note-position').forEach(pos => {
-        pos.classList.remove('correct', 'incorrect', 'active');
+        pos.classList.remove('correct', 'incorrect', 'active', 'selected');
     });
     
-    if (gameState.drillMode === 'name_note') {
-        startNewRoundNameNote();
-        return;
+    // Use quiz system
+    if (currentQuiz) {
+        currentQuiz.startQuestion();
     }
-    
-    // Get new random note
-    gameState.currentNote = getRandomNote();
-    
-    // Find positions within fret range
-    const positions = [];
-    STRINGS.forEach((string, stringIndex) => {
-        for (let fret = gameState.fretStart; fret <= gameState.fretEnd; fret++) {
-            if (getNoteAtFret(stringIndex, fret) === gameState.currentNote) {
-                positions.push({ string: stringIndex, fret: fret });
-            }
-        }
-    });
-    
-    gameState.currentPositions = positions;
-    
-    // Update prompt
-    document.getElementById('prompt').textContent = `Find: ${gameState.currentNote}`;
 }
 
-// Update handleNoteClick to work with drill modes
+// Update handleNoteClick to work with quiz types
 function handleNoteClick(event) {
     if (!gameState.isPlaying) return;
-    if (gameState.drillMode === 'name_note') return; // Ignore clicks in name_note mode
     
     const clickedString = parseInt(event.target.dataset.string);
     const clickedFret = parseInt(event.target.dataset.fret);
@@ -451,45 +442,131 @@ function handleNoteClick(event) {
         return; // Ignore clicks outside range
     }
     
-    gameState.attempts++;
-    
-    const isCorrect = clickedNote === gameState.currentNote;
-    
-    if (isCorrect) {
-        gameState.score++;
-        event.target.classList.add('correct');
-        showFeedback('Correct! ✓', 'correct');
+    // Delegate to quiz type
+    if (currentQuiz) {
+        currentQuiz.handleInput({
+            string: clickedString,
+            fret: clickedFret,
+            note: clickedNote,
+            element: event.target
+        });
+    }
+}
+
+// Quiz callback functions
+function createQuizCallbacks() {
+    return {
+        onCorrect: (input) => {
+            gameState.score++;
+            gameState.attempts++;
+            
+            if (input.element) {
+                input.element.classList.add('correct');
+            }
+            
+            showFeedback('Correct! ✓', 'correct');
+            
+            // Highlight all correct positions briefly
+            gameState.currentPositions.forEach(pos => {
+                const element = document.querySelector(
+                    `.note-position[data-string="${pos.string}"][data-fret="${pos.fret}"]`
+                );
+                if (element) {
+                    element.classList.add('correct');
+                }
+            });
+            
+            updateScore();
+            
+            // Clear highlights after delay (quiz will start new question)
+            setTimeout(() => {
+                document.querySelectorAll('.note-position').forEach(pos => {
+                    pos.classList.remove('correct', 'incorrect', 'selected');
+                });
+            }, 1000);
+        },
         
-        // Highlight all correct positions briefly
-        gameState.currentPositions.forEach(pos => {
-            const element = document.querySelector(
-                `.note-position[data-string="${pos.string}"][data-fret="${pos.fret}"]`
-            );
-            if (element) {
-                element.classList.add('correct');
+        onIncorrect: (input) => {
+            gameState.attempts++;
+            
+            if (input.element) {
+                input.element.classList.add('incorrect');
+                setTimeout(() => {
+                    input.element.classList.remove('incorrect');
+                }, 500);
+            }
+            
+            showFeedback('Try Again! ✗', 'incorrect');
+            updateScore();
+        },
+        
+        updatePrompt: (text) => {
+            document.getElementById('prompt').textContent = text;
+        },
+        
+        updateUI: () => {
+            updateQuizUI();
+        }
+    };
+}
+
+// Update UI based on current quiz type
+function updateQuizUI() {
+    // Clear all highlights
+    document.querySelectorAll('.note-position').forEach(pos => {
+        pos.classList.remove('active', 'selected');
+    });
+    
+    // Update based on drill mode
+    if (gameState.drillMode === 'name_note' && gameState.currentPosition) {
+        // Highlight the current position in name_note mode
+        const element = document.querySelector(
+            `.note-position[data-string="${gameState.currentPosition.string}"][data-fret="${gameState.currentPosition.fret}"]`
+        );
+        if (element) {
+            element.classList.add('active');
+        }
+    } else if (gameState.drillMode === 'find_all_instances' && currentQuiz) {
+        // Show selected positions in find_all_instances mode
+        STRINGS.forEach((string, stringIndex) => {
+            for (let fret = 0; fret <= NUM_FRETS; fret++) {
+                const element = document.querySelector(
+                    `.note-position[data-string="${stringIndex}"][data-fret="${fret}"]`
+                );
+                if (element && currentQuiz.isPositionSelected && currentQuiz.isPositionSelected(stringIndex, fret)) {
+                    element.classList.add('selected');
+                }
             }
         });
-        
-        // Start new round after delay
-        setTimeout(() => {
-            startNewRound();
-        }, 1000);
-    } else {
-        event.target.classList.add('incorrect');
-        showFeedback('Try Again! ✗', 'incorrect');
-        
-        // Clear incorrect highlight after delay
-        setTimeout(() => {
-            event.target.classList.remove('incorrect');
-        }, 500);
     }
     
-    updateScore();
+    // Update submit button visibility
+    const submitBtn = document.getElementById('submitBtn');
+    if (gameState.drillMode === 'find_all_instances' && currentQuiz && currentQuiz.getUIElements) {
+        const uiElements = currentQuiz.getUIElements();
+        if (uiElements && uiElements.submitButton) {
+            submitBtn.style.display = uiElements.submitButton.visible ? 'inline-block' : 'none';
+            submitBtn.disabled = !uiElements.submitButton.enabled;
+        }
+    } else {
+        submitBtn.style.display = 'none';
+    }
+}
+
+// Initialize quiz instance
+function initializeQuiz() {
+    const callbacks = createQuizCallbacks();
+    currentQuiz = QuizFactory.createQuiz(gameState.drillMode, gameState, callbacks);
 }
 
 // Event listeners
 document.getElementById('startBtn').addEventListener('click', startExercise);
 document.getElementById('resetBtn').addEventListener('click', resetExercise);
+document.getElementById('submitBtn').addEventListener('click', () => {
+    if (currentQuiz && currentQuiz.handleInput) {
+        currentQuiz.handleInput({ submit: true });
+    }
+});
 document.getElementById('tuningPreset').addEventListener('change', handleTuningChange);
 document.getElementById('noteNaming').addEventListener('change', handleNoteNamingChange);
 document.getElementById('fretStart').addEventListener('change', handleFretRangeChange);

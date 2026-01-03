@@ -4,7 +4,7 @@ Comprehensive test suite for the guitar fretboard learning application.
 
 ## Overview
 
-This directory contains unit tests for the core functionality of the guitar fretboard application, ensuring that note calculations, tuning systems, and game logic work correctly.
+This directory contains unit tests for the core functionality of the guitar fretboard application, ensuring that note calculations, tuning systems, game logic, and quiz types work correctly.
 
 ## Running Tests
 
@@ -17,10 +17,10 @@ This directory contains unit tests for the core functionality of the guitar fret
 
 2. Open your browser and navigate to:
    ```
-   http://localhost:8000/tests/
+   http://localhost:8000/tests/all-tests.html
    ```
 
-3. Click the **"▶️ Run Tests"** button to execute all tests
+3. Click the **"▶️ Run All Tests"** button to execute all tests
 
 ### Test Output
 
@@ -31,45 +31,70 @@ The test runner displays:
 
 ## Test Coverage
 
-The test suite includes **36 tests** covering:
+The test suite includes **56 tests** covering:
 
-### Guitar Configuration (6 tests)
+### App Logic Tests (36 tests)
+
+**Guitar Configuration (6 tests)**
 - Tuning preset validation
 - String count verification
 - Open note correctness for each tuning
 
-### Note System (6 tests)
+**Note System (6 tests)**
 - Chromatic scale completeness
 - Sharp and flat notation
 - Note naming consistency
 
-### getNoteAtFret() Function (10 tests)
+**getNoteAtFret() Function (10 tests)**
 - Note calculation accuracy across all frets
 - Octave wrapping (12th, 24th frets)
 - Different tunings (Standard, Drop D, 7-string)
 - Sharp vs. flat notation handling
 
-### Game State (4 tests)
+**Game State (4 tests)**
 - Initial state validation
 - Default settings verification
 - Drill mode configuration
 
-### Constants (4 tests)
+**Constants (4 tests)**
 - Fret count verification
 - Exercise time settings
 - Fret marker positions
 
-### Edge Cases (3 tests)
+**Edge Cases (3 tests)**
 - Chromatic scale wrapping
 - Beyond 24 frets calculation
 - All semitone coverage
 
-### Tuning Validation (3 tests)
+**Tuning Validation (3 tests)**
 - Octave range validation
 - String property completeness
 - Logical octave ordering
 
-## Test Framework
+### Quiz Types Tests (20 tests)
+
+**Quiz Type System (4 tests)**
+- Factory pattern creation of quiz instances
+- Supported mode enumeration
+
+**FindAllInstancesQuiz (16 tests)**
+- Selection/deselection mechanics
+- Multi-select tracking
+- Position detection
+- Answer validation (perfect, partial, incorrect)
+- Fret range restrictions
+- Submit button state management
+- Prompt generation
+- State reset functionality
+
+## Test Files
+
+- `all-tests.html` - Combined test runner for all test suites
+- `index.html` - Original app logic test runner
+- `test-framework.js` - Lightweight testing framework
+- `app.test.js` - Test suite for application logic (36 tests)
+- `quiz-types.test.js` - Test suite for quiz type system (20 tests)
+- `README.md` - This file
 
 The tests use a custom lightweight testing framework (`test-framework.js`) with the following features:
 
