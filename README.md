@@ -1,0 +1,2 @@
+# fretting
+Guitar fretting exercises
