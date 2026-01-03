@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guitar Fretboard Learning</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🎸 Guitar Fretboard Learning</h1>
+        
+        <div class="settings-panel">
+            <div class="settings-grid">
+                <div class="setting-group">
+                    <label class="setting-label">Drill Mode</label>
+                    <select id="drillMode">
+                        <option value="find_note">Find Note</option>
+                        <option value="name_note">Name Note</option>
+                        <option value="find_all_instances">Find All Instances</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label class="setting-label">Note Naming</label>
+                    <select id="noteNaming">
+                        <option value="sharps">Sharps (#)</option>
+                        <option value="flats">Flats (♭)</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label class="setting-label">Fret Range</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="number" id="fretStart" min="0" max="24" value="0" style="width: 70px;">
+                        <span style="align-self: center;">to</span>
+                        <input type="number" id="fretEnd" min="0" max="24" value="24" style="width: 70px;">
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <label class="setting-label">Tuning</label>
+                    <select id="tuningPreset">
+                        <option value="standard_6">Standard 6-String</option>
+                        <option value="drop_d">Drop D</option>
+                        <option value="standard_7">Standard 7-String</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="prompt-area">
+                <div class="prompt" id="prompt">Click "Start Exercise" to begin!</div>
+                <div id="noteButtons" class="note-buttons" style="display: none;"></div>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-label">Time Left</div>
+                    <div class="stat-value timer" id="timer">60</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Score</div>
+                    <div class="stat-value score" id="score">0/0</div>
+                </div>
+            </div>
+            
+            <div>
+                <button class="start-btn" id="startBtn">Start Exercise</button>
+                <button class="reset-btn" id="resetBtn">Reset</button>
+                <button class="submit-btn" id="submitBtn" style="display: none;">Submit Answer</button>
+            </div>
+        </div>
+
+        <div class="fretboard-container">
+            <div class="fretboard">
+                <div class="strings-container" id="stringsContainer"></div>
+                <div class="fret-markers" id="fretMarkers"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/quiz-types.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
