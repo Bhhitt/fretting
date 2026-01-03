@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guitar Fretboard Learning</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            max-width: 1400px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .prompt-area {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .prompt {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .timer {
+            color: #e74c3c;
+        }
+
+        .score {
+            color: #27ae60;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .start-btn {
+            background: #27ae60;
+            color: white;
+        }
+
+        .start-btn:hover {
+            background: #229954;
+            transform: translateY(-2px);
+        }
+
+        .start-btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .reset-btn {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .reset-btn:hover {
+            background: #c0392b;
+        }
+
+        .fretboard-container {
+            overflow-x: auto;
+            padding: 20px 0;
+        }
+
+        .fretboard {
+            position: relative;
+            background: linear-gradient(to bottom, #8B4513 0%, #654321 100%);
+            border-radius: 10px;
+            padding: 20px;
+            min-width: 1200px;
+        }
+
+        .strings-container {
+            position: relative;
+        }
+
+        .string {
+            position: relative;
+            height: 40px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .string:last-child {
+            margin-bottom: 0;
+        }
+
+        .string-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: #ddd;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .string:nth-child(1) .string-line { height: 1px; }
+        .string:nth-child(2) .string-line { height: 1.5px; }
+        .string:nth-child(3) .string-line { height: 2px; }
+        .string:nth-child(4) .string-line { height: 2.5px; }
+        .string:nth-child(5) .string-line { height: 3px; }
+        .string:nth-child(6) .string-line { height: 3.5px; }
+
+        .string-label {
+            position: absolute;
+            left: -40px;
+            font-weight: bold;
+            font-size: 14px;
+            color: white;
+            width: 30px;
+            text-align: center;
+        }
+
+        .fret-positions {
+            position: relative;
+            display: flex;
+            flex: 1;
+        }
+
+        .fret {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-width: 45px;
+        }
+
+        .fret::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: -20px;
+            bottom: -20px;
+            width: 3px;
+            background: #999;
+        }
+
+        .fret:first-child::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: -20px;
+            bottom: -20px;
+            width: 5px;
+            background: #666;
+        }
+
+        .note-position {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        .note-position:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: scale(1.1);
+        }
+
+        .note-position.active {
+            background: #3498db;
+            border-color: #2980b9;
+        }
+
+        .note-position.correct {
+            background: #27ae60;
+            border-color: #229954;
+            animation: pulse 0.5s;
+        }
+
+        .note-position.incorrect {
+            background: #e74c3c;
+            border-color: #c0392b;
+            animation: shake 0.5s;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .fret-markers {
+            display: flex;
+            margin-top: 10px;
+            padding-left: 0;
+        }
+
+        .fret-marker {
+            flex: 1;
+            text-align: center;
+            min-width: 45px;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .fret-marker.dot::before {
+            content: '•';
+            font-size: 24px;
+            display: block;
+            margin-bottom: -5px;
+        }
+
+        .fret-marker.double-dot::before {
+            content: '••';
+            font-size: 24px;
+            display: block;
+            margin-bottom: -5px;
+            letter-spacing: 2px;
+        }
+
+        .feedback {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 30px 50px;
+            border-radius: 15px;
+            font-size: 32px;
+            font-weight: bold;
+            color: white;
+            z-index: 1000;
+            animation: fadeInOut 1s;
+            pointer-events: none;
+        }
+
+        .feedback.correct {
+            background: #27ae60;
+        }
+
+        .feedback.incorrect {
+            background: #e74c3c;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+        }
+
+        .game-over {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .game-over-content {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .game-over h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .final-score {
+            font-size: 48px;
+            color: #27ae60;
+            margin: 20px 0;
+        }
+
+        .game-over p {
+            margin: 10px 0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎸 Guitar Fretboard Learning</h1>
+        
+        <div class="controls">
+            <div class="prompt-area">
+                <div class="prompt" id="prompt">Click "Start Exercise" to begin!</div>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-label">Time Left</div>
+                    <div class="stat-value timer" id="timer">60</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Score</div>
+                    <div class="stat-value score" id="score">0/0</div>
+                </div>
+            </div>
+            
+            <div>
+                <button class="start-btn" id="startBtn">Start Exercise</button>
+                <button class="reset-btn" id="resetBtn">Reset</button>
+            </div>
+        </div>
+
+        <div class="fretboard-container">
+            <div class="fretboard">
+                <div class="strings-container" id="stringsContainer"></div>
+                <div class="fret-markers" id="fretMarkers"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Guitar configuration
+        const STRINGS = [
+            { name: 'E', openNote: 'E', octave: 4 },
+            { name: 'B', openNote: 'B', octave: 3 },
+            { name: 'G', openNote: 'G', octave: 3 },
+            { name: 'D', openNote: 'D', octave: 3 },
+            { name: 'A', openNote: 'A', octave: 2 },
+            { name: 'E', openNote: 'E', octave: 2 }
+        ];
+
+        const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        const NUM_FRETS = 24;
+        const EXERCISE_TIME = 60; // seconds
+
+        // Fret markers positions (standard guitar inlays)
+        const FRET_MARKERS = {
+            3: 'dot', 5: 'dot', 7: 'dot', 9: 'dot',
+            12: 'double-dot', 15: 'dot', 17: 'dot',
+            19: 'dot', 21: 'dot', 24: 'double-dot'
+        };
+
+        // Game state
+        let gameState = {
+            isPlaying: false,
+            timeLeft: EXERCISE_TIME,
+            score: 0,
+            attempts: 0,
+            currentNote: null,
+            currentPositions: [],
+            timerInterval: null
+        };
+
+        // Get note at specific fret on a string
+        function getNoteAtFret(stringIndex, fret) {
+            const string = STRINGS[stringIndex];
+            const openNoteIndex = NOTES.indexOf(string.openNote);
+            const noteIndex = (openNoteIndex + fret) % 12;
+            return NOTES[noteIndex];
+        }
+
+        // Initialize the fretboard
+        function initFretboard() {
+            const container = document.getElementById('stringsContainer');
+            const markersContainer = document.getElementById('fretMarkers');
+            
+            // Create strings
+            STRINGS.forEach((string, stringIndex) => {
+                const stringDiv = document.createElement('div');
+                stringDiv.className = 'string';
+                
+                const stringLine = document.createElement('div');
+                stringLine.className = 'string-line';
+                stringDiv.appendChild(stringLine);
+                
+                const label = document.createElement('div');
+                label.className = 'string-label';
+                label.textContent = string.name;
+                stringDiv.appendChild(label);
+                
+                const fretPositions = document.createElement('div');
+                fretPositions.className = 'fret-positions';
+                
+                for (let fret = 0; fret <= NUM_FRETS; fret++) {
+                    const fretDiv = document.createElement('div');
+                    fretDiv.className = 'fret';
+                    
+                    const notePos = document.createElement('div');
+                    notePos.className = 'note-position';
+                    notePos.dataset.string = stringIndex;
+                    notePos.dataset.fret = fret;
+                    notePos.dataset.note = getNoteAtFret(stringIndex, fret);
+                    notePos.addEventListener('click', handleNoteClick);
+                    
+                    fretDiv.appendChild(notePos);
+                    fretPositions.appendChild(fretDiv);
+                }
+                
+                stringDiv.appendChild(fretPositions);
+                container.appendChild(stringDiv);
+            });
+            
+            // Create fret markers
+            for (let fret = 0; fret <= NUM_FRETS; fret++) {
+                const marker = document.createElement('div');
+                marker.className = 'fret-marker';
+                if (FRET_MARKERS[fret]) {
+                    marker.classList.add(FRET_MARKERS[fret]);
+                }
+                marker.textContent = fret;
+                markersContainer.appendChild(marker);
+            }
+        }
+
+        // Get random note
+        function getRandomNote() {
+            return NOTES[Math.floor(Math.random() * NOTES.length)];
+        }
+
+        // Find all positions of a note on the fretboard
+        function findNotePositions(note) {
+            const positions = [];
+            STRINGS.forEach((string, stringIndex) => {
+                for (let fret = 0; fret <= NUM_FRETS; fret++) {
+                    if (getNoteAtFret(stringIndex, fret) === note) {
+                        positions.push({ string: stringIndex, fret: fret });
+                    }
+                }
+            });
+            return positions;
+        }
+
+        // Start new round
+        function startNewRound() {
+            // Clear previous highlights
+            document.querySelectorAll('.note-position').forEach(pos => {
+                pos.classList.remove('correct', 'incorrect');
+            });
+            
+            // Get new random note
+            gameState.currentNote = getRandomNote();
+            gameState.currentPositions = findNotePositions(gameState.currentNote);
+            
+            // Update prompt
+            document.getElementById('prompt').textContent = `Find: ${gameState.currentNote}`;
+        }
+
+        // Handle note click
+        function handleNoteClick(event) {
+            if (!gameState.isPlaying) return;
+            
+            const clickedString = parseInt(event.target.dataset.string);
+            const clickedFret = parseInt(event.target.dataset.fret);
+            const clickedNote = event.target.dataset.note;
+            
+            gameState.attempts++;
+            
+            const isCorrect = clickedNote === gameState.currentNote;
+            
+            if (isCorrect) {
+                gameState.score++;
+                event.target.classList.add('correct');
+                showFeedback('Correct! ✓', 'correct');
+                
+                // Highlight all correct positions briefly
+                gameState.currentPositions.forEach(pos => {
+                    const element = document.querySelector(
+                        `.note-position[data-string="${pos.string}"][data-fret="${pos.fret}"]`
+                    );
+                    if (element) {
+                        element.classList.add('correct');
+                    }
+                });
+                
+                // Start new round after delay
+                setTimeout(() => {
+                    startNewRound();
+                }, 1000);
+            } else {
+                event.target.classList.add('incorrect');
+                showFeedback('Try Again! ✗', 'incorrect');
+                
+                // Clear incorrect highlight after delay
+                setTimeout(() => {
+                    event.target.classList.remove('incorrect');
+                }, 500);
+            }
+            
+            updateScore();
+        }
+
+        // Show feedback
+        function showFeedback(message, type) {
+            const feedback = document.createElement('div');
+            feedback.className = `feedback ${type}`;
+            feedback.textContent = message;
+            document.body.appendChild(feedback);
+            
+            setTimeout(() => {
+                feedback.remove();
+            }, 1000);
+        }
+
+        // Update score display
+        function updateScore() {
+            document.getElementById('score').textContent = `${gameState.score}/${gameState.attempts}`;
+        }
+
+        // Update timer display
+        function updateTimer() {
+            document.getElementById('timer').textContent = gameState.timeLeft;
+        }
+
+        // Start exercise
+        function startExercise() {
+            gameState.isPlaying = true;
+            gameState.timeLeft = EXERCISE_TIME;
+            gameState.score = 0;
+            gameState.attempts = 0;
+            
+            document.getElementById('startBtn').disabled = true;
+            updateScore();
+            updateTimer();
+            
+            startNewRound();
+            
+            // Start timer
+            gameState.timerInterval = setInterval(() => {
+                gameState.timeLeft--;
+                updateTimer();
+                
+                if (gameState.timeLeft <= 0) {
+                    endExercise();
+                }
+            }, 1000);
+        }
+
+        // End exercise
+        function endExercise() {
+            gameState.isPlaying = false;
+            clearInterval(gameState.timerInterval);
+            
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('prompt').textContent = 'Exercise Complete!';
+            
+            // Clear all highlights
+            document.querySelectorAll('.note-position').forEach(pos => {
+                pos.classList.remove('correct', 'incorrect');
+            });
+            
+            // Show game over screen
+            showGameOver();
+        }
+
+        // Show game over screen
+        function showGameOver() {
+            const accuracy = gameState.attempts > 0 
+                ? Math.round((gameState.score / gameState.attempts) * 100) 
+                : 0;
+            
+            const gameOverDiv = document.createElement('div');
+            gameOverDiv.className = 'game-over';
+            gameOverDiv.innerHTML = `
+                <div class="game-over-content">
+                    <h2>Exercise Complete!</h2>
+                    <div class="final-score">${gameState.score}/${gameState.attempts}</div>
+                    <p>Accuracy: ${accuracy}%</p>
+                    <p>Time: ${EXERCISE_TIME} seconds</p>
+                    <button class="start-btn" onclick="this.parentElement.parentElement.remove()">Close</button>
+                </div>
+            `;
+            document.body.appendChild(gameOverDiv);
+            
+            // Remove on click outside
+            gameOverDiv.addEventListener('click', (e) => {
+                if (e.target === gameOverDiv) {
+                    gameOverDiv.remove();
+                }
+            });
+        }
+
+        // Reset exercise
+        function resetExercise() {
+            if (gameState.timerInterval) {
+                clearInterval(gameState.timerInterval);
+            }
+            
+            gameState.isPlaying = false;
+            gameState.timeLeft = EXERCISE_TIME;
+            gameState.score = 0;
+            gameState.attempts = 0;
+            gameState.currentNote = null;
+            
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('prompt').textContent = 'Click "Start Exercise" to begin!';
+            
+            updateScore();
+            updateTimer();
+            
+            // Clear all highlights
+            document.querySelectorAll('.note-position').forEach(pos => {
+                pos.classList.remove('correct', 'incorrect');
+            });
+        }
+
+        // Event listeners
+        document.getElementById('startBtn').addEventListener('click', startExercise);
+        document.getElementById('resetBtn').addEventListener('click', resetExercise);
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            initFretboard();
+        });
+    </script>
+</body>
+</html>
