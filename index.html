@@ -605,8 +605,10 @@
          */
         function getNoteAtFret(stringIndex, fret) {
             const string = STRINGS[stringIndex];
+            // Always use sharps for calculation since tuning is defined with sharp note names
             const openNoteIndex = NOTES_SHARP.indexOf(string.openNote);
             const noteIndex = (openNoteIndex + fret) % 12;
+            // Return the note in the current display notation (sharps or flats)
             return NOTES[noteIndex];
         }
 
@@ -793,6 +795,12 @@
                     validPositions.push({ string: stringIndex, fret: fret });
                 }
             });
+            
+            // Fallback to open position if no valid positions (shouldn't happen in normal use)
+            if (validPositions.length === 0) {
+                return { string: 0, fret: 0 };
+            }
+            
             return validPositions[Math.floor(Math.random() * validPositions.length)];
         }
 
