@@ -12,6 +12,11 @@ fretting/
 │   └── styles.css      # Application styles
 ├── js/
 │   └── app.js          # Application logic
+├── tests/
+│   ├── index.html      # Test runner
+│   ├── test-framework.js  # Testing framework
+│   ├── app.test.js     # Test suite
+│   └── README.md       # Testing documentation
 ├── README.md           # This file
 ├── DOCUMENTATION.md    # Comprehensive documentation
 └── design.txt          # Design document
@@ -45,3 +50,16 @@ The application uses vanilla JavaScript with no build process required. All file
 - **HTML**: Main structure and markup
 - **CSS**: All styling and animations
 - **JavaScript**: Game logic, state management, and interactivity
+
+### Testing
+A comprehensive test suite is included in the `tests/` directory:
+- **36 unit tests** covering note calculations, tuning systems, and game logic
+- Browser-based test runner with visual feedback
+- Run tests by opening `tests/index.html` in a browser
+
+To run tests:
+1. Start a local server: `python3 -m http.server 8000`
+2. Navigate to `http://localhost:8000/tests/`
+3. Click "Run Tests"
+
+See `tests/README.md` for detailed testing documentation.

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guitar Fretboard Tests</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Monaco', 'Courier New', monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #252526;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            color: #4ec9b0;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #858585;
+            margin-bottom: 30px;
+        }
+
+        .summary {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 30px;
+            border-left: 4px solid #4ec9b0;
+        }
+
+        .summary h2 {
+            color: #4ec9b0;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .stat {
+            display: inline-block;
+            margin-right: 30px;
+            font-size: 16px;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            font-size: 24px;
+        }
+
+        .passed {
+            color: #4ec9b0;
+        }
+
+        .failed {
+            color: #f48771;
+        }
+
+        .total {
+            color: #dcdcaa;
+        }
+
+        button {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-family: inherit;
+        }
+
+        button:hover {
+            background: #1177bb;
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        #output {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 6px;
+            min-height: 200px;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+
+        #output pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .log-line {
+            margin: 4px 0;
+        }
+
+        .success {
+            color: #4ec9b0;
+        }
+
+        .error {
+            color: #f48771;
+        }
+
+        .suite {
+            color: #dcdcaa;
+            font-weight: bold;
+        }
+
+        .divider {
+            border-top: 1px solid #3e3e42;
+            margin: 20px 0;
+        }
+
+        .loading {
+            color: #858585;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎸 Guitar Fretboard Tests</h1>
+        <p class="subtitle">Comprehensive test suite for the fretboard learning application</p>
+
+        <div class="summary" id="summary" style="display: none;">
+            <h2>Test Results</h2>
+            <div>
+                <span class="stat">
+                    <span class="stat-value passed" id="passedCount">0</span> Passed
+                </span>
+                <span class="stat">
+                    <span class="stat-value failed" id="failedCount">0</span> Failed
+                </span>
+                <span class="stat">
+                    <span class="stat-value total" id="totalCount">0</span> Total
+                </span>
+            </div>
+        </div>
+
+        <button onclick="runAllTests()">▶️ Run Tests</button>
+        <button onclick="clearOutput()">🗑️ Clear Output</button>
+
+        <div id="output">
+            <div class="loading">Click "Run Tests" to start testing...</div>
+        </div>
+    </div>
+
+    <!-- Load the application code -->
+    <script src="../js/app.js"></script>
+    
+    <!-- Load test framework -->
+    <script src="test-framework.js"></script>
+    
+    <!-- Load tests -->
+    <script src="app.test.js"></script>
+
+    <script>
+        const output = document.getElementById('output');
+        const summary = document.getElementById('summary');
+
+        // Override console.log to capture output
+        const originalLog = console.log;
+        const originalError = console.error;
+
+        function clearOutput() {
+            output.innerHTML = '';
+        }
+
+        function addLogLine(message, className = '') {
+            const line = document.createElement('div');
+            line.className = `log-line ${className}`;
+            line.textContent = message;
+            output.appendChild(line);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            const message = args.join(' ');
+            
+            if (message.includes('✅')) {
+                addLogLine(message, 'success');
+            } else if (message.includes('📦')) {
+                addLogLine(message, 'suite');
+            } else if (message.includes('📊')) {
+                addLogLine(message, 'suite');
+            } else if (message.includes('=')) {
+                addLogLine(message, '');
+            } else {
+                addLogLine(message);
+            }
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            const message = args.join(' ');
+            addLogLine(message, 'error');
+        };
+
+        function runAllTests() {
+            clearOutput();
+            summary.style.display = 'none';
+            
+            addLogLine('🚀 Starting test suite...', 'suite');
+            addLogLine('');
+
+            try {
+                const results = runTests();
+                
+                // Update summary
+                document.getElementById('passedCount').textContent = results.passed;
+                document.getElementById('failedCount').textContent = results.failed;
+                document.getElementById('totalCount').textContent = results.total;
+                summary.style.display = 'block';
+
+                // Add final message
+                addLogLine('');
+                if (results.failed === 0) {
+                    addLogLine('🎉 All tests passed!', 'success');
+                } else {
+                    addLogLine(`⚠️  ${results.failed} test(s) failed. Please review the errors above.`, 'error');
+                }
+            } catch (error) {
+                addLogLine(`❌ Error running tests: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
