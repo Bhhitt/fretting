@@ -546,3 +546,155 @@ button {
     margin: 10px 0;
     color: #666;
 }
+
+/* Mobile Responsive Styles */
+@media screen and (max-width: 768px) {
+    /* Reduce body padding on mobile */
+    body {
+        padding: 10px;
+    }
+    
+    /* Reduce container padding on mobile */
+    .container {
+        padding: 15px;
+        border-radius: 10px;
+    }
+    
+    /* Make title smaller on mobile */
+    h1 {
+        font-size: 20px;
+        margin-bottom: 10px;
+    }
+    
+    /* Reduce settings panel padding */
+    .settings-panel {
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+    
+    /* Make settings grid single column on mobile */
+    .settings-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    /* Reduce prompt font size */
+    .prompt {
+        font-size: 18px;
+        padding: 10px;
+    }
+    
+    /* Make controls stack vertically on mobile */
+    .controls {
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    
+    /* Make prompt area and stats full width */
+    .prompt-area {
+        width: 100%;
+        min-width: auto;
+    }
+    
+    /* Stack stats horizontally but with smaller gap */
+    .stats {
+        width: 100%;
+        justify-content: center;
+        gap: 15px;
+    }
+    
+    .stat-value {
+        font-size: 20px;
+    }
+    
+    /* Make buttons full width on mobile */
+    .controls > div:last-child {
+        display: flex;
+        gap: 8px;
+        width: 100%;
+    }
+    
+    .controls > div:last-child button {
+        flex: 1;
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+    
+    /* Reduce fretboard container padding */
+    .fretboard-container {
+        padding: 10px 0;
+    }
+    
+    /* Reduce fretboard padding on mobile */
+    .fretboard {
+        padding: 10px;
+    }
+    
+    /* Smaller string spacing on mobile */
+    .string {
+        height: 30px;
+        margin-bottom: 10px;
+    }
+    
+    /* Smaller string labels */
+    .string-label {
+        font-size: 12px;
+        left: -30px;
+        width: 25px;
+    }
+    
+    /* Smaller fret widths on mobile */
+    .fret {
+        min-width: 35px;
+    }
+    
+    /* Smaller note positions on mobile */
+    .note-position {
+        width: 24px;
+        height: 24px;
+    }
+    
+    /* Smaller fret markers */
+    .fret-marker {
+        min-width: 35px;
+        font-size: 10px;
+    }
+    
+    .fret-marker.dot::before {
+        font-size: 18px;
+    }
+    
+    .fret-marker.double-dot::before {
+        font-size: 18px;
+    }
+    
+    /* Note buttons - make them more compact */
+    .note-buttons {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+        margin-top: 8px;
+    }
+    
+    .note-btn {
+        padding: 8px;
+        font-size: 13px;
+    }
+    
+    /* Smaller feedback overlay on mobile */
+    .feedback {
+        padding: 20px 30px;
+        font-size: 24px;
+    }
+    
+    /* Game over modal adjustments */
+    .game-over-content {
+        padding: 25px;
+        max-width: 90%;
+        margin: 0 10px;
+    }
+    
+    .final-score {
+        font-size: 36px;
+    }
+}
