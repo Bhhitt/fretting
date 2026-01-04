@@ -263,8 +263,10 @@ function resetExercise() {
         pos.classList.remove('correct', 'incorrect', 'active', 'selected', 'region-highlight');
     });
     
-    // Hide note buttons if in name_note mode
-    document.getElementById('noteButtons').style.display = 'none';
+    // Only hide note buttons if NOT in name_note mode
+    if (gameState.drillMode !== 'name_note') {
+        document.getElementById('noteButtons').style.display = 'none';
+    }
 }
 
 // Get random position within fret range
@@ -465,6 +467,11 @@ function startNewRound() {
 // Update handleNoteClick to work with quiz types
 function handleNoteClick(event) {
     if (!gameState.isPlaying) return;
+    
+    // Ignore fretboard clicks in name_note mode (user should use note buttons)
+    if (gameState.drillMode === 'name_note') {
+        return;
+    }
     
     const clickedString = parseInt(event.target.dataset.string);
     const clickedFret = parseInt(event.target.dataset.fret);
