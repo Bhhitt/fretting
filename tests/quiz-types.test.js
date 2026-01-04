@@ -50,7 +50,8 @@ function runQuizTypesTests() {
                 currentPositions: [],
                 fretStart: 0,
                 fretEnd: 24,
-                drillMode: 'find_all_instances'
+                drillMode: 'find_all_instances',
+                useRandomRange: true // Default to enabled
             };
             const mockCallbacks = {
                 onCorrect: () => {},
@@ -229,22 +230,76 @@ function runQuizTypesTests() {
             setup();
             mockGameState.fretStart = 4;
             mockGameState.fretEnd = 8;
-            mockGameState.currentNote = 'D';
             
             quiz.startQuestion();
             
-            test.assert(promptText.includes('between frets 4-8'), 'Prompt should mention fret range');
+            // With random ranges, the prompt should show "between frets"
+            test.assert(promptText.includes('between frets'), 'Prompt should mention fret range');
+            // The range should be within the allowed range
+            const match = promptText.match(/between frets (\d+)-(\d+)/);
+            if (match) {
+                const start = parseInt(match[1]);
+                const end = parseInt(match[2]);
+                test.assert(start >= 4 && end <= 8, 'Generated range should be within allowed range');
+            }
         });
 
-        test.it('should update prompt for entire fretboard', () => {
+        test.it('should generate random fret ranges for each question', () => {
             setup();
             mockGameState.fretStart = 0;
             mockGameState.fretEnd = 24;
-            mockGameState.currentNote = 'G';
+            mockGameState.useRandomRange = true; // Enable random ranges
+            
+            // Start multiple questions and check if ranges vary
+            const ranges = [];
+            for (let i = 0; i < 20; i++) { // Increased iterations for better reliability
+                quiz.startQuestion();
+                ranges.push({ start: quiz.questionFretStart, end: quiz.questionFretEnd });
+            }
+            
+            // Check that at least some ranges are different (with 20 attempts, very likely)
+            const uniqueRanges = new Set(ranges.map(r => `${r.start}-${r.end}`));
+            test.assert(uniqueRanges.size > 1, 'Should generate varied random ranges');
+        });
+
+        test.it('should respect user-defined fret range boundaries', () => {
+            setup();
+            mockGameState.fretStart = 5;
+            mockGameState.fretEnd = 15;
+            
+            // Test multiple times to ensure consistency
+            for (let i = 0; i < 20; i++) {
+                quiz.startQuestion();
+                test.assert(quiz.questionFretStart >= 5, `Question start ${quiz.questionFretStart} should be >= 5`);
+                test.assert(quiz.questionFretEnd <= 15, `Question end ${quiz.questionFretEnd} should be <= 15`);
+                test.assert(quiz.questionFretStart <= quiz.questionFretEnd, 'Start should be <= end');
+            }
+        });
+
+        test.it('should use entire range when user range is small', () => {
+            setup();
+            mockGameState.fretStart = 3;
+            mockGameState.fretEnd = 7; // Only 5 frets
+            mockGameState.useRandomRange = true;
             
             quiz.startQuestion();
             
-            test.assert(promptText.includes('entire fretboard'), 'Prompt should mention entire fretboard');
+            // When range is 5 or fewer frets, should use the entire range
+            test.assertEqual(quiz.questionFretStart, 3, 'Should use full start');
+            test.assertEqual(quiz.questionFretEnd, 7, 'Should use full end');
+        });
+
+        test.it('should use full fret range when random mode is disabled', () => {
+            setup();
+            mockGameState.fretStart = 0;
+            mockGameState.fretEnd = 24;
+            mockGameState.useRandomRange = false; // Disable random ranges
+            
+            quiz.startQuestion();
+            
+            // Should use the full user-defined range
+            test.assertEqual(quiz.questionFretStart, 0, 'Should use user start');
+            test.assertEqual(quiz.questionFretEnd, 24, 'Should use user end');
         });
     });
 

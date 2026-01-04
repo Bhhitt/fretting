@@ -55,7 +55,9 @@ let gameState = {
     drillMode: 'find_note', // find_note | name_note | find_all_instances
     fretStart: 0,
     fretEnd: 24,
-    noteNaming: 'sharps' // sharps | flats
+    noteNaming: 'sharps', // sharps | flats
+    useRandomRange: true, // For find_all_instances mode
+    timerEnabled: true // Timer toggle for all modes
 };
 
 // Current quiz instance
@@ -154,7 +156,11 @@ function updateScore() {
 
 // Update timer display
 function updateTimer() {
-    document.getElementById('timer').textContent = gameState.timeLeft;
+    if (!gameState.timerEnabled) {
+        document.getElementById('timer').textContent = '∞';
+    } else {
+        document.getElementById('timer').textContent = gameState.timeLeft;
+    }
 }
 
 // Start exercise
@@ -172,15 +178,17 @@ function startExercise() {
     initializeQuiz();
     startNewRound();
     
-    // Start timer
-    gameState.timerInterval = setInterval(() => {
-        gameState.timeLeft--;
-        updateTimer();
-        
-        if (gameState.timeLeft <= 0) {
-            endExercise();
-        }
-    }, 1000);
+    // Start timer only if enabled
+    if (gameState.timerEnabled) {
+        gameState.timerInterval = setInterval(() => {
+            gameState.timeLeft--;
+            updateTimer();
+            
+            if (gameState.timeLeft <= 0) {
+                endExercise();
+            }
+        }, 1000);
+    }
 }
 
 // End exercise
@@ -191,9 +199,9 @@ function endExercise() {
     document.getElementById('startBtn').disabled = false;
     document.getElementById('prompt').textContent = 'Exercise Complete!';
     
-    // Clear all highlights
+    // Clear all highlights including region highlighting
     document.querySelectorAll('.note-position').forEach(pos => {
-        pos.classList.remove('correct', 'incorrect');
+        pos.classList.remove('correct', 'incorrect', 'region-highlight');
     });
     
     // Show game over screen
@@ -250,13 +258,15 @@ function resetExercise() {
     updateScore();
     updateTimer();
     
-    // Clear all highlights
+    // Clear all highlights including region highlighting
     document.querySelectorAll('.note-position').forEach(pos => {
-        pos.classList.remove('correct', 'incorrect', 'active', 'selected');
+        pos.classList.remove('correct', 'incorrect', 'active', 'selected', 'region-highlight');
     });
     
-    // Hide note buttons if in name_note mode
-    document.getElementById('noteButtons').style.display = 'none';
+    // Only hide note buttons if NOT in name_note mode
+    if (gameState.drillMode !== 'name_note') {
+        document.getElementById('noteButtons').style.display = 'none';
+    }
 }
 
 // Get random position within fret range
@@ -332,8 +342,33 @@ function handleDrillModeChange() {
         document.getElementById('noteButtons').style.display = 'none';
     }
     
+    // Show/hide random range toggle for find_all_instances mode
+    const randomRangeToggleGroup = document.getElementById('randomRangeToggleGroup');
+    if (gameState.drillMode === 'find_all_instances') {
+        randomRangeToggleGroup.style.display = 'flex';
+    } else {
+        randomRangeToggleGroup.style.display = 'none';
+    }
+    
     if (!gameState.isPlaying) {
         document.getElementById('prompt').textContent = 'Click "Start Exercise" to begin!';
+    }
+}
+
+// Handle random range toggle change
+function handleRandomRangeToggle() {
+    gameState.useRandomRange = document.getElementById('randomRangeToggle').checked;
+}
+
+// Handle timer toggle change
+function handleTimerToggle() {
+    gameState.timerEnabled = document.getElementById('timerToggle').checked;
+    
+    // Update timer display
+    if (!gameState.timerEnabled) {
+        document.getElementById('timer').textContent = '∞';
+    } else {
+        updateTimer();
     }
 }
 
@@ -433,12 +468,27 @@ function startNewRound() {
 function handleNoteClick(event) {
     if (!gameState.isPlaying) return;
     
+    // Ignore fretboard clicks in name_note mode (user should use note buttons)
+    if (gameState.drillMode === 'name_note') {
+        return;
+    }
+    
     const clickedString = parseInt(event.target.dataset.string);
     const clickedFret = parseInt(event.target.dataset.fret);
     const clickedNote = event.target.dataset.note;
     
-    // Check if click is within fret range
-    if (clickedFret < gameState.fretStart || clickedFret > gameState.fretEnd) {
+    // Determine the active fret range
+    let fretStart = gameState.fretStart;
+    let fretEnd = gameState.fretEnd;
+    
+    // For find_all_instances mode, use the quiz's specific range
+    if (gameState.drillMode === 'find_all_instances' && currentQuiz && currentQuiz.questionFretStart !== undefined) {
+        fretStart = currentQuiz.questionFretStart;
+        fretEnd = currentQuiz.questionFretEnd;
+    }
+    
+    // Check if click is within the active fret range
+    if (clickedFret < fretStart || clickedFret > fretEnd) {
         return; // Ignore clicks outside range
     }
     
@@ -510,12 +560,41 @@ function createQuizCallbacks() {
     };
 }
 
+// Update region highlighting based on fret range
+function updateRegionHighlighting() {
+    // Apply region highlighting only in find_all_instances mode when playing
+    const shouldHighlight = gameState.isPlaying && gameState.drillMode === 'find_all_instances';
+    
+    // Get the fret range from the current quiz if it's find_all_instances mode
+    let fretStart = gameState.fretStart;
+    let fretEnd = gameState.fretEnd;
+    
+    if (shouldHighlight && currentQuiz && currentQuiz.questionFretStart !== undefined) {
+        fretStart = currentQuiz.questionFretStart;
+        fretEnd = currentQuiz.questionFretEnd;
+    }
+    
+    document.querySelectorAll('.note-position').forEach(pos => {
+        const fret = parseInt(pos.dataset.fret);
+        const inRange = fret >= fretStart && fret <= fretEnd;
+        
+        if (shouldHighlight && inRange) {
+            pos.classList.add('region-highlight');
+        } else {
+            pos.classList.remove('region-highlight');
+        }
+    });
+}
+
 // Update UI based on current quiz type
 function updateQuizUI() {
     // Clear all highlights
     document.querySelectorAll('.note-position').forEach(pos => {
         pos.classList.remove('active', 'selected');
     });
+    
+    // Update region highlighting
+    updateRegionHighlighting();
     
     // Update based on drill mode
     if (gameState.drillMode === 'name_note' && gameState.currentPosition) {
@@ -546,7 +625,8 @@ function updateQuizUI() {
         const uiElements = currentQuiz.getUIElements();
         if (uiElements && uiElements.submitButton) {
             submitBtn.style.display = uiElements.submitButton.visible ? 'inline-block' : 'none';
-            submitBtn.disabled = !uiElements.submitButton.enabled;
+            // Only enable if playing AND the quiz says it should be enabled
+            submitBtn.disabled = !gameState.isPlaying || !uiElements.submitButton.enabled;
         }
     } else {
         submitBtn.style.display = 'none';
@@ -572,6 +652,8 @@ document.getElementById('noteNaming').addEventListener('change', handleNoteNamin
 document.getElementById('fretStart').addEventListener('change', handleFretRangeChange);
 document.getElementById('fretEnd').addEventListener('change', handleFretRangeChange);
 document.getElementById('drillMode').addEventListener('change', handleDrillModeChange);
+document.getElementById('randomRangeToggle').addEventListener('change', handleRandomRangeToggle);
+document.getElementById('timerToggle').addEventListener('change', handleTimerToggle);
 
 // Initialize on load
 window.addEventListener('DOMContentLoaded', () => {

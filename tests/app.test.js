@@ -185,6 +185,14 @@ function runTests() {
         test.it('should have correct note naming default', () => {
             test.assertEqual(gameState.noteNaming, 'sharps', 'Default note naming should be sharps');
         });
+        
+        test.it('should have random range toggle property', () => {
+            test.assert(typeof gameState.useRandomRange === 'boolean', 'useRandomRange should be a boolean');
+        });
+        
+        test.it('should have timer enabled toggle property', () => {
+            test.assert(typeof gameState.timerEnabled === 'boolean', 'timerEnabled should be a boolean');
+        });
     });
 
     test.describe('Constants', () => {
@@ -265,6 +273,149 @@ function runTests() {
                 test.assert(string.openNote, `String ${idx} should have an openNote`);
                 test.assert(typeof string.octave === 'number', `String ${idx} should have a numeric octave`);
             });
+        });
+    });
+
+    test.describe('Region Highlighting', () => {
+        // Mock DOM for region highlighting tests
+        let mockPositions = [];
+        
+        function setupRegionHighlightingMocks() {
+            mockPositions = [];
+            // Create mock note positions for all strings and frets
+            for (let string = 0; string < 6; string++) {
+                for (let fret = 0; fret <= 24; fret++) {
+                    const mockElement = {
+                        dataset: { string: string.toString(), fret: fret.toString() },
+                        classList: {
+                            classes: new Set(),
+                            add: function(className) { this.classes.add(className); },
+                            remove: function(className) { this.classes.delete(className); },
+                            contains: function(className) { return this.classes.has(className); }
+                        }
+                    };
+                    mockPositions.push(mockElement);
+                }
+            }
+            
+            // Mock document.querySelectorAll to return our mock positions
+            const originalQuerySelectorAll = document.querySelectorAll;
+            document.querySelectorAll = (selector) => {
+                if (selector === '.note-position') {
+                    return mockPositions;
+                }
+                return originalQuerySelectorAll.call(document, selector);
+            };
+        }
+        
+        test.it('should highlight positions within fret range in find_all_instances mode', () => {
+            setupRegionHighlightingMocks();
+            gameState.isPlaying = true;
+            gameState.drillMode = 'find_all_instances';
+            gameState.fretStart = 5;
+            gameState.fretEnd = 10;
+            
+            updateRegionHighlighting();
+            
+            // Count highlighted positions
+            const highlightedCount = mockPositions.filter(pos => 
+                pos.classList.contains('region-highlight')
+            ).length;
+            
+            // Should highlight 6 strings * 6 frets (5-10 inclusive) = 36 positions
+            test.assertEqual(highlightedCount, 36, 'Should highlight 36 positions in range 5-10');
+        });
+        
+        test.it('should not highlight when not in find_all_instances mode', () => {
+            setupRegionHighlightingMocks();
+            gameState.isPlaying = true;
+            gameState.drillMode = 'find_note';
+            gameState.fretStart = 5;
+            gameState.fretEnd = 10;
+            
+            updateRegionHighlighting();
+            
+            const highlightedCount = mockPositions.filter(pos => 
+                pos.classList.contains('region-highlight')
+            ).length;
+            
+            test.assertEqual(highlightedCount, 0, 'Should not highlight in find_note mode');
+        });
+        
+        test.it('should not highlight when not playing', () => {
+            setupRegionHighlightingMocks();
+            gameState.isPlaying = false;
+            gameState.drillMode = 'find_all_instances';
+            gameState.fretStart = 5;
+            gameState.fretEnd = 10;
+            
+            updateRegionHighlighting();
+            
+            const highlightedCount = mockPositions.filter(pos => 
+                pos.classList.contains('region-highlight')
+            ).length;
+            
+            test.assertEqual(highlightedCount, 0, 'Should not highlight when not playing');
+        });
+        
+        test.it('should highlight entire fretboard when range is 0-24', () => {
+            setupRegionHighlightingMocks();
+            gameState.isPlaying = true;
+            gameState.drillMode = 'find_all_instances';
+            gameState.fretStart = 0;
+            gameState.fretEnd = 24;
+            
+            updateRegionHighlighting();
+            
+            const highlightedCount = mockPositions.filter(pos => 
+                pos.classList.contains('region-highlight')
+            ).length;
+            
+            // Should highlight 6 strings * 25 frets (0-24 inclusive) = 150 positions
+            test.assertEqual(highlightedCount, 150, 'Should highlight all 150 positions');
+        });
+        
+        test.it('should highlight single fret when start equals end', () => {
+            setupRegionHighlightingMocks();
+            gameState.isPlaying = true;
+            gameState.drillMode = 'find_all_instances';
+            gameState.fretStart = 12;
+            gameState.fretEnd = 12;
+            
+            updateRegionHighlighting();
+            
+            const highlightedCount = mockPositions.filter(pos => 
+                pos.classList.contains('region-highlight')
+            ).length;
+            
+            // Should highlight 6 strings * 1 fret = 6 positions
+            test.assertEqual(highlightedCount, 6, 'Should highlight 6 positions for single fret');
+        });
+        
+        test.it('should correctly identify positions within range boundaries', () => {
+            setupRegionHighlightingMocks();
+            gameState.isPlaying = true;
+            gameState.drillMode = 'find_all_instances';
+            gameState.fretStart = 3;
+            gameState.fretEnd = 7;
+            
+            updateRegionHighlighting();
+            
+            // Check that fret 2 is not highlighted
+            const fret2 = mockPositions.find(pos => pos.dataset.fret === '2');
+            test.assert(!fret2.classList.contains('region-highlight'), 'Fret 2 should not be highlighted');
+            
+            // Check that fret 3 is highlighted
+            const fret3 = mockPositions.find(pos => pos.dataset.fret === '3');
+            test.assert(fret3.classList.contains('region-highlight'), 'Fret 3 should be highlighted');
+            
+            // Check that fret 7 is highlighted
+            const fret7 = mockPositions.find(pos => pos.dataset.fret === '7');
+            test.assert(fret7.classList.contains('region-highlight'), 'Fret 7 should be highlighted');
+            
+            // Check that fret 8 is not highlighted
+            const fret8 = mockPositions.find(pos => pos.dataset.fret === '8');
+            test.assert(!fret8.classList.contains('region-highlight'), 'Fret 8 should not be highlighted');
         });
     });
 
