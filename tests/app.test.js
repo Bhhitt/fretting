@@ -189,6 +189,10 @@ function runTests() {
         test.it('should have random range toggle property', () => {
             test.assert(typeof gameState.useRandomRange === 'boolean', 'useRandomRange should be a boolean');
         });
+        
+        test.it('should have timer enabled toggle property', () => {
+            test.assert(typeof gameState.timerEnabled === 'boolean', 'timerEnabled should be a boolean');
+        });
     });
 
     test.describe('Constants', () => {

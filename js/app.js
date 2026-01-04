@@ -56,7 +56,8 @@ let gameState = {
     fretStart: 0,
     fretEnd: 24,
     noteNaming: 'sharps', // sharps | flats
-    useRandomRange: true // For find_all_instances mode
+    useRandomRange: true, // For find_all_instances mode
+    timerEnabled: true // Timer toggle for all modes
 };
 
 // Current quiz instance
@@ -155,7 +156,11 @@ function updateScore() {
 
 // Update timer display
 function updateTimer() {
-    document.getElementById('timer').textContent = gameState.timeLeft;
+    if (!gameState.timerEnabled) {
+        document.getElementById('timer').textContent = '∞';
+    } else {
+        document.getElementById('timer').textContent = gameState.timeLeft;
+    }
 }
 
 // Start exercise
@@ -173,15 +178,17 @@ function startExercise() {
     initializeQuiz();
     startNewRound();
     
-    // Start timer
-    gameState.timerInterval = setInterval(() => {
-        gameState.timeLeft--;
-        updateTimer();
-        
-        if (gameState.timeLeft <= 0) {
-            endExercise();
-        }
-    }, 1000);
+    // Start timer only if enabled
+    if (gameState.timerEnabled) {
+        gameState.timerInterval = setInterval(() => {
+            gameState.timeLeft--;
+            updateTimer();
+            
+            if (gameState.timeLeft <= 0) {
+                endExercise();
+            }
+        }, 1000);
+    }
 }
 
 // End exercise
@@ -349,6 +356,18 @@ function handleDrillModeChange() {
 // Handle random range toggle change
 function handleRandomRangeToggle() {
     gameState.useRandomRange = document.getElementById('randomRangeToggle').checked;
+}
+
+// Handle timer toggle change
+function handleTimerToggle() {
+    gameState.timerEnabled = document.getElementById('timerToggle').checked;
+    
+    // Update timer display
+    if (!gameState.timerEnabled) {
+        document.getElementById('timer').textContent = '∞';
+    } else {
+        updateTimer();
+    }
 }
 
 // Create note buttons for name_note mode
@@ -599,7 +618,8 @@ function updateQuizUI() {
         const uiElements = currentQuiz.getUIElements();
         if (uiElements && uiElements.submitButton) {
             submitBtn.style.display = uiElements.submitButton.visible ? 'inline-block' : 'none';
-            submitBtn.disabled = !uiElements.submitButton.enabled;
+            // Only enable if playing AND the quiz says it should be enabled
+            submitBtn.disabled = !gameState.isPlaying || !uiElements.submitButton.enabled;
         }
     } else {
         submitBtn.style.display = 'none';
@@ -626,6 +646,7 @@ document.getElementById('fretStart').addEventListener('change', handleFretRangeC
 document.getElementById('fretEnd').addEventListener('change', handleFretRangeChange);
 document.getElementById('drillMode').addEventListener('change', handleDrillModeChange);
 document.getElementById('randomRangeToggle').addEventListener('change', handleRandomRangeToggle);
+document.getElementById('timerToggle').addEventListener('change', handleTimerToggle);
 
 // Initialize on load
 window.addEventListener('DOMContentLoaded', () => {
