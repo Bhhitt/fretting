@@ -50,7 +50,8 @@ function runQuizTypesTests() {
                 currentPositions: [],
                 fretStart: 0,
                 fretEnd: 24,
-                drillMode: 'find_all_instances'
+                drillMode: 'find_all_instances',
+                useRandomRange: true // Default to enabled
             };
             const mockCallbacks = {
                 onCorrect: () => {},
@@ -247,15 +248,16 @@ function runQuizTypesTests() {
             setup();
             mockGameState.fretStart = 0;
             mockGameState.fretEnd = 24;
+            mockGameState.useRandomRange = true; // Enable random ranges
             
             // Start multiple questions and check if ranges vary
             const ranges = [];
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < 20; i++) { // Increased iterations for better reliability
                 quiz.startQuestion();
                 ranges.push({ start: quiz.questionFretStart, end: quiz.questionFretEnd });
             }
             
-            // Check that at least some ranges are different (with 10 attempts, very likely)
+            // Check that at least some ranges are different (with 20 attempts, very likely)
             const uniqueRanges = new Set(ranges.map(r => `${r.start}-${r.end}`));
             test.assert(uniqueRanges.size > 1, 'Should generate varied random ranges');
         });
@@ -278,12 +280,26 @@ function runQuizTypesTests() {
             setup();
             mockGameState.fretStart = 3;
             mockGameState.fretEnd = 7; // Only 5 frets
+            mockGameState.useRandomRange = true;
             
             quiz.startQuestion();
             
             // When range is 5 or fewer frets, should use the entire range
             test.assertEqual(quiz.questionFretStart, 3, 'Should use full start');
             test.assertEqual(quiz.questionFretEnd, 7, 'Should use full end');
+        });
+
+        test.it('should use full fret range when random mode is disabled', () => {
+            setup();
+            mockGameState.fretStart = 0;
+            mockGameState.fretEnd = 24;
+            mockGameState.useRandomRange = false; // Disable random ranges
+            
+            quiz.startQuestion();
+            
+            // Should use the full user-defined range
+            test.assertEqual(quiz.questionFretStart, 0, 'Should use user start');
+            test.assertEqual(quiz.questionFretEnd, 24, 'Should use user end');
         });
     });
 

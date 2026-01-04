@@ -185,6 +185,10 @@ function runTests() {
         test.it('should have correct note naming default', () => {
             test.assertEqual(gameState.noteNaming, 'sharps', 'Default note naming should be sharps');
         });
+        
+        test.it('should have random range toggle property', () => {
+            test.assert(typeof gameState.useRandomRange === 'boolean', 'useRandomRange should be a boolean');
+        });
     });
 
     test.describe('Constants', () => {

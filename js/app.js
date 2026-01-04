@@ -55,7 +55,8 @@ let gameState = {
     drillMode: 'find_note', // find_note | name_note | find_all_instances
     fretStart: 0,
     fretEnd: 24,
-    noteNaming: 'sharps' // sharps | flats
+    noteNaming: 'sharps', // sharps | flats
+    useRandomRange: true // For find_all_instances mode
 };
 
 // Current quiz instance
@@ -332,9 +333,22 @@ function handleDrillModeChange() {
         document.getElementById('noteButtons').style.display = 'none';
     }
     
+    // Show/hide random range toggle for find_all_instances mode
+    const randomRangeToggleGroup = document.getElementById('randomRangeToggleGroup');
+    if (gameState.drillMode === 'find_all_instances') {
+        randomRangeToggleGroup.style.display = 'flex';
+    } else {
+        randomRangeToggleGroup.style.display = 'none';
+    }
+    
     if (!gameState.isPlaying) {
         document.getElementById('prompt').textContent = 'Click "Start Exercise" to begin!';
     }
+}
+
+// Handle random range toggle change
+function handleRandomRangeToggle() {
+    gameState.useRandomRange = document.getElementById('randomRangeToggle').checked;
 }
 
 // Create note buttons for name_note mode
@@ -611,6 +625,7 @@ document.getElementById('noteNaming').addEventListener('change', handleNoteNamin
 document.getElementById('fretStart').addEventListener('change', handleFretRangeChange);
 document.getElementById('fretEnd').addEventListener('change', handleFretRangeChange);
 document.getElementById('drillMode').addEventListener('change', handleDrillModeChange);
+document.getElementById('randomRangeToggle').addEventListener('change', handleRandomRangeToggle);
 
 // Initialize on load
 window.addEventListener('DOMContentLoaded', () => {

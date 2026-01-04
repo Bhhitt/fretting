@@ -189,10 +189,16 @@ class FindAllInstancesQuiz extends QuizType {
     }
 
     startQuestion() {
-        // Generate a random fret range for this question
-        const range = this.generateRandomFretRange();
-        this.questionFretStart = range.start;
-        this.questionFretEnd = range.end;
+        // Generate a random fret range for this question (if enabled)
+        if (this.gameState.useRandomRange) {
+            const range = this.generateRandomFretRange();
+            this.questionFretStart = range.start;
+            this.questionFretEnd = range.end;
+        } else {
+            // Use the full user-defined range
+            this.questionFretStart = this.gameState.fretStart;
+            this.questionFretEnd = this.gameState.fretEnd;
+        }
         
         // Pick a random note
         this.gameState.currentNote = NOTES[Math.floor(Math.random() * NOTES.length)];
