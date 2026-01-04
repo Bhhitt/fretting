@@ -376,12 +376,8 @@ button {
     background: #999;
 }
 
-.fret:first-child::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: -20px;
-    bottom: -20px;
+.fret:first-child::after {
+    /* Nut bar - darker and thicker than regular fret bars */
     width: 5px;
     background: #666;
 }

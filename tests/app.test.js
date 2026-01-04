@@ -178,7 +178,7 @@ function runTests() {
         });
 
         test.it('should have correct fret range default', () => {
-            test.assertEqual(gameState.fretStart, 1, 'Default fret start should be 1');
+            test.assertEqual(gameState.fretStart, 0, 'Default fret start should be 0');
             test.assertEqual(gameState.fretEnd, 24, 'Default fret end should be 24');
         });
 

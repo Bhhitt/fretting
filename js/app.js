@@ -53,7 +53,7 @@ let gameState = {
     currentPosition: null, // For name_note mode
     timerInterval: null,
     drillMode: 'find_note', // find_note | name_note | find_all_instances
-    fretStart: 1,
+    fretStart: 0,
     fretEnd: 24,
     noteNaming: 'sharps', // sharps | flats
     useRandomRange: true, // For find_all_instances mode
@@ -101,7 +101,7 @@ function initFretboard() {
         const fretPositions = document.createElement('div');
         fretPositions.className = 'fret-positions';
         
-        for (let fret = 1; fret <= NUM_FRETS; fret++) {
+        for (let fret = 0; fret <= NUM_FRETS; fret++) {
             const fretDiv = document.createElement('div');
             fretDiv.className = 'fret';
             
@@ -121,7 +121,7 @@ function initFretboard() {
     });
     
     // Create fret markers
-    for (let fret = 1; fret <= NUM_FRETS; fret++) {
+    for (let fret = 0; fret <= NUM_FRETS; fret++) {
         const marker = document.createElement('div');
         marker.className = 'fret-marker';
         if (FRET_MARKERS[fret]) {
@@ -608,7 +608,7 @@ function updateQuizUI() {
     } else if (gameState.drillMode === 'find_all_instances' && currentQuiz) {
         // Show selected positions in find_all_instances mode
         STRINGS.forEach((string, stringIndex) => {
-            for (let fret = 1; fret <= NUM_FRETS; fret++) {
+            for (let fret = 0; fret <= NUM_FRETS; fret++) {
                 const element = document.querySelector(
                     `.note-position[data-string="${stringIndex}"][data-fret="${fret}"]`
                 );
