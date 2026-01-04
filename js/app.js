@@ -437,8 +437,18 @@ function handleNoteClick(event) {
     const clickedFret = parseInt(event.target.dataset.fret);
     const clickedNote = event.target.dataset.note;
     
-    // Check if click is within fret range
-    if (clickedFret < gameState.fretStart || clickedFret > gameState.fretEnd) {
+    // Determine the active fret range
+    let fretStart = gameState.fretStart;
+    let fretEnd = gameState.fretEnd;
+    
+    // For find_all_instances mode, use the quiz's specific range
+    if (gameState.drillMode === 'find_all_instances' && currentQuiz && currentQuiz.questionFretStart !== undefined) {
+        fretStart = currentQuiz.questionFretStart;
+        fretEnd = currentQuiz.questionFretEnd;
+    }
+    
+    // Check if click is within the active fret range
+    if (clickedFret < fretStart || clickedFret > fretEnd) {
         return; // Ignore clicks outside range
     }
     
@@ -515,9 +525,18 @@ function updateRegionHighlighting() {
     // Apply region highlighting only in find_all_instances mode when playing
     const shouldHighlight = gameState.isPlaying && gameState.drillMode === 'find_all_instances';
     
+    // Get the fret range from the current quiz if it's find_all_instances mode
+    let fretStart = gameState.fretStart;
+    let fretEnd = gameState.fretEnd;
+    
+    if (shouldHighlight && currentQuiz && currentQuiz.questionFretStart !== undefined) {
+        fretStart = currentQuiz.questionFretStart;
+        fretEnd = currentQuiz.questionFretEnd;
+    }
+    
     document.querySelectorAll('.note-position').forEach(pos => {
         const fret = parseInt(pos.dataset.fret);
-        const inRange = fret >= gameState.fretStart && fret <= gameState.fretEnd;
+        const inRange = fret >= fretStart && fret <= fretEnd;
         
         if (shouldHighlight && inRange) {
             pos.classList.add('region-highlight');

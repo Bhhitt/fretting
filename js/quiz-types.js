@@ -157,16 +157,50 @@ class FindAllInstancesQuiz extends QuizType {
         super(gameState, callbacks);
         this.selectedPositions = new Set(); // Set of "string-fret" keys
         this.submitted = false;
+        this.questionFretStart = gameState.fretStart;
+        this.questionFretEnd = gameState.fretEnd;
+    }
+
+    /**
+     * Generate a random fret range for the question
+     * Returns a range of 3-8 frets within the overall allowed range
+     */
+    generateRandomFretRange() {
+        const userFretStart = this.gameState.fretStart;
+        const userFretEnd = this.gameState.fretEnd;
+        const totalFrets = userFretEnd - userFretStart + 1;
+        
+        // If user range is small (5 frets or less), use the entire range
+        if (totalFrets <= 5) {
+            return { start: userFretStart, end: userFretEnd };
+        }
+        
+        // Generate a random range size between 3 and 8 frets
+        const minRangeSize = 3;
+        const maxRangeSize = Math.min(8, totalFrets);
+        const rangeSize = Math.floor(Math.random() * (maxRangeSize - minRangeSize + 1)) + minRangeSize;
+        
+        // Pick a random starting position within the allowed range
+        const maxStartFret = userFretEnd - rangeSize + 1;
+        const startFret = Math.floor(Math.random() * (maxStartFret - userFretStart + 1)) + userFretStart;
+        const endFret = startFret + rangeSize - 1;
+        
+        return { start: startFret, end: endFret };
     }
 
     startQuestion() {
+        // Generate a random fret range for this question
+        const range = this.generateRandomFretRange();
+        this.questionFretStart = range.start;
+        this.questionFretEnd = range.end;
+        
         // Pick a random note
         this.gameState.currentNote = NOTES[Math.floor(Math.random() * NOTES.length)];
         
-        // Find all positions of this note within the fret range
+        // Find all positions of this note within the question's fret range
         this.gameState.currentPositions = [];
         STRINGS.forEach((string, stringIndex) => {
-            for (let fret = this.gameState.fretStart; fret <= this.gameState.fretEnd; fret++) {
+            for (let fret = this.questionFretStart; fret <= this.questionFretEnd; fret++) {
                 if (getNoteAtFret(stringIndex, fret) === this.gameState.currentNote) {
                     this.gameState.currentPositions.push({ string: stringIndex, fret: fret });
                 }
@@ -176,9 +210,7 @@ class FindAllInstancesQuiz extends QuizType {
         this.selectedPositions.clear();
         this.submitted = false;
         
-        const rangeText = this.gameState.fretStart === 0 && this.gameState.fretEnd === NUM_FRETS
-            ? 'on the entire fretboard'
-            : `between frets ${this.gameState.fretStart}-${this.gameState.fretEnd}`;
+        const rangeText = `between frets ${this.questionFretStart}-${this.questionFretEnd}`;
         
         this.callbacks.updatePrompt(`Select ALL ${this.gameState.currentNote} notes ${rangeText}`);
         this.callbacks.updateUI();
