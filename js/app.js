@@ -608,7 +608,7 @@ function updateQuizUI() {
     } else if (gameState.drillMode === 'find_all_instances' && currentQuiz) {
         // Show selected positions in find_all_instances mode
         STRINGS.forEach((string, stringIndex) => {
-            for (let fret = 0; fret <= NUM_FRETS; fret++) {
+            for (let fret = 1; fret <= NUM_FRETS; fret++) {
                 const element = document.querySelector(
                     `.note-position[data-string="${stringIndex}"][data-fret="${fret}"]`
                 );
