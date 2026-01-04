@@ -494,7 +494,7 @@ button {
     font-weight: bold;
     color: white;
     z-index: 1000;
-    animation: fadeInOut 1s;
+    animation: fadeInOut 0.3s;
     pointer-events: none;
 }
 
@@ -508,8 +508,8 @@ button {
 
 @keyframes fadeInOut {
     0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-    20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    30% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    70% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
     100% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
 }
 

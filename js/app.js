@@ -53,7 +53,7 @@ let gameState = {
     currentPosition: null, // For name_note mode
     timerInterval: null,
     drillMode: 'find_note', // find_note | name_note | find_all_instances
-    fretStart: 0,
+    fretStart: 1,
     fretEnd: 24,
     noteNaming: 'sharps', // sharps | flats
     useRandomRange: true, // For find_all_instances mode
@@ -101,7 +101,7 @@ function initFretboard() {
         const fretPositions = document.createElement('div');
         fretPositions.className = 'fret-positions';
         
-        for (let fret = 0; fret <= NUM_FRETS; fret++) {
+        for (let fret = 1; fret <= NUM_FRETS; fret++) {
             const fretDiv = document.createElement('div');
             fretDiv.className = 'fret';
             
@@ -121,7 +121,7 @@ function initFretboard() {
     });
     
     // Create fret markers
-    for (let fret = 0; fret <= NUM_FRETS; fret++) {
+    for (let fret = 1; fret <= NUM_FRETS; fret++) {
         const marker = document.createElement('div');
         marker.className = 'fret-marker';
         if (FRET_MARKERS[fret]) {
@@ -146,7 +146,7 @@ function showFeedback(message, type) {
     
     setTimeout(() => {
         feedback.remove();
-    }, 1000);
+    }, 300);
 }
 
 // Update score display
@@ -410,7 +410,7 @@ function handleNoteButtonClick(event) {
         // Start new round after delay
         setTimeout(() => {
             startNewRoundNameNote();
-        }, 1000);
+        }, 200);
     } else {
         event.target.classList.add('incorrect-answer');
         showFeedback('Try Again! ✗', 'incorrect');
@@ -533,7 +533,7 @@ function createQuizCallbacks() {
                 document.querySelectorAll('.note-position').forEach(pos => {
                     pos.classList.remove('correct', 'incorrect', 'selected');
                 });
-            }, 1000);
+            }, 200);
         },
         
         onIncorrect: (input) => {

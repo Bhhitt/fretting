@@ -256,7 +256,7 @@ class FindAllInstancesQuiz extends QuizType {
             // Start new question after a delay
             setTimeout(() => {
                 this.startQuestion();
-            }, 1500);
+            }, 300);
         } else {
             this.callbacks.onIncorrect({ 
                 positions: Array.from(this.selectedPositions),
