@@ -146,7 +146,7 @@ function showFeedback(message, type) {
     
     setTimeout(() => {
         feedback.remove();
-    }, 1000);
+    }, 300);
 }
 
 // Update score display
@@ -410,7 +410,7 @@ function handleNoteButtonClick(event) {
         // Start new round after delay
         setTimeout(() => {
             startNewRoundNameNote();
-        }, 1000);
+        }, 200);
     } else {
         event.target.classList.add('incorrect-answer');
         showFeedback('Try Again! ✗', 'incorrect');
@@ -533,7 +533,7 @@ function createQuizCallbacks() {
                 document.querySelectorAll('.note-position').forEach(pos => {
                     pos.classList.remove('correct', 'incorrect', 'selected');
                 });
-            }, 1000);
+            }, 200);
         },
         
         onIncorrect: (input) => {

@@ -376,12 +376,8 @@ button {
     background: #999;
 }
 
-.fret:first-child::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: -20px;
-    bottom: -20px;
+.fret:first-child::after {
+    /* Nut bar - darker and thicker than regular fret bars */
     width: 5px;
     background: #666;
 }
@@ -494,7 +490,7 @@ button {
     font-weight: bold;
     color: white;
     z-index: 1000;
-    animation: fadeInOut 1s;
+    animation: fadeInOut 0.3s;
     pointer-events: none;
 }
 
@@ -508,8 +504,8 @@ button {
 
 @keyframes fadeInOut {
     0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-    20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    30% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    70% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
     100% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
 }
 
